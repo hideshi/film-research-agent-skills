@@ -48,6 +48,17 @@ python3 skills/ja/film-research-briefing/scripts/check_grounding.py \
   /path/to/research-repo/docs/terminator-skynet
 ```
 
+## 対応エージェント
+
+共通ルールは `AGENTS.md` に集約しています。Cursor、Claude Code、Gemini
+ベースのエージェント（Antigravity を含む想定）には、それぞれの入口ファイル
+（`.cursorrules`、`CLAUDE.md`、`GEMINI.md`）を用意しています。入口ファイルは
+正本を複製せず、`AGENTS.md` と `SKILL.md` を参照します。
+
+Codex では `agents/openai.yaml` と `SKILL.md` を利用できます。エージェントが
+入口ファイルを自動認識しない場合は、`AGENTS.md` と
+`skills/ja/film-research-briefing/SKILL.md` を明示的に読み込ませてください。
+
 ## 現在の範囲
 
 MVP は日本語スキル、調査ディレクトリ生成、出典ノート生成、Claim–Evidence 検査を提供します。YouTube やブログの取得・閲覧はエージェントのブラウザー機能を使い、自動字幕の一括ダウンロードやアクセス制限の回避は行いません。
