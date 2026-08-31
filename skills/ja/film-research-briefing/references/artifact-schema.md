@@ -16,6 +16,10 @@ docs/<topic-id>/
 
 `source-matrix.md` は発見索引であり、内容主張の根拠ではない。根拠は `sources/notes/*.md` の grounded ノートである。
 
+## 視聴・理解のレンズ
+
+`design/viewing-lens.md` に主プロファイルを一つ、補助タグを0個以上記録する。主プロファイルはブリーフィングの中心的な問いと構成を決め、補助タグは適用する場面・論点だけを横断的に補う。補助タグを使う場合は、選択理由と適用範囲を記録する。
+
 ## 出典ノート
 
 frontmatter の必須項目:
@@ -41,13 +45,14 @@ grounding_status: grounded
 
 `evidence_domain`:
 
-- `fictional-work`: 作品本編、脚本、公式予告・公式あらすじなど、作品世界についての証拠
+- `screen-work`: 対象となる映画・映像作品本編、公式字幕など、作品が提示する内容と形式についての証拠
+- `source-work`: 翻案元の小説、戯曲、漫画、ゲーム、旧作など、比較する原資料についての証拠
 - `production-record`: 制作者インタビュー、制作記録など、現実の制作過程についての証拠
 - `critical-discourse`: 批評、論文、動画エッセイ、ブログなど、解釈や受容についての証拠
 - `real-world`: 現実の技術・歴史・社会についての証拠
 - `discovery-only`: 内容未確認で、候補発見にしか使えない資料
 
-一つのページが複数ドメインの内容を含む場合は、利用目的ごとに出典ノートを分ける。`fictional-work` は「作品で何が描かれるか」を支えられるが、現実の技術能力や将来予測を支えられない。これは現実との比較を禁じる規則ではなく、比較を行う場合に現実側の資料を別途示し、論文で映画設定を事実として扱わないための境界である。
+`fictional-work` は既存出典ノートとの互換性のため受理するが、新規ノートでは `screen-work` を使う。一つのページが複数ドメインの内容を含む場合は、利用目的ごとに出典ノートを分ける。`screen-work` は「作品が何を提示するか」を支えられるが、ドキュメンタリーを含め、現実世界で実際に起きたことを単独では確認できない。翻案比較には `source-work`、制作条件との比較には `production-record`、現実との比較には `real-world` の資料を別途示す。
 
 本文には `## Evidence anchors` を置き、次の表を使う。
 
@@ -66,12 +71,12 @@ grounding_status: grounded
 
 | Claim ID | Type | Claim | Sources | Status |
 |---|---|---|---|---|
-| C001 | plot | 主張 | S001 | confirmed |
+| C001 | depiction | 作品が提示する内容 | S001 | confirmed |
 | C002 | interpretation | 論者Aは〜と読む | S002 | attributed |
 | C003 | contextual-comparison | 作品と現実の比較 | S001, S003 | synthesis |
 | C004 | inquiry | 作品から生まれる未決の問い | S001 | synthesis |
 ```
 
-Type は `plot`、`worldbuilding`、`form`、`production`、`creator-intent`、`reception`、`interpretation`、`representation`、`real-world-fact`、`contextual-comparison`、`inquiry`。既存成果物の `present-day-comparison` と `future-question` も検査スクリプトは受理する。Status は `confirmed`、`provisional`、`attributed`、`synthesis`。
+Type は `depiction`、`plot`、`worldbuilding`、`form`、`production`、`creator-intent`、`reception`、`interpretation`、`representation`、`real-world-fact`、`contextual-comparison`、`inquiry`。既存成果物の `present-day-comparison` と `future-question` も検査スクリプトは受理する。Status は `confirmed`、`provisional`、`attributed`、`synthesis`。
 
 Source ledger には各 ID、資料名、URL、evidence level、grounding status を一覧化する。ローカルノートへのリンクも付ける。

@@ -15,6 +15,7 @@ from urllib.parse import urlparse
 SOURCE_ID_RE = re.compile(r"^S[0-9]{3,}$")
 SOURCE_KINDS = (
     "film",
+    "source-work",
     "screenplay",
     "official-material",
     "creator-interview",
@@ -25,6 +26,8 @@ SOURCE_KINDS = (
     "blog",
     "encyclopedia",
     "forum",
+    "archive",
+    "dataset",
 )
 EVIDENCE_LEVELS = (
     "work-primary",
@@ -34,6 +37,9 @@ EVIDENCE_LEVELS = (
     "informal-discovery",
 )
 EVIDENCE_DOMAINS = (
+    "screen-work",
+    "source-work",
+    # Legacy domain retained for existing source notes.
     "fictional-work",
     "production-record",
     "critical-discourse",

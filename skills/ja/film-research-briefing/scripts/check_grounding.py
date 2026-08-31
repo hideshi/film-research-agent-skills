@@ -32,6 +32,9 @@ EVIDENCE_LEVELS = {
     "informal-discovery",
 }
 EVIDENCE_DOMAINS = {
+    "screen-work",
+    "source-work",
+    # Legacy domain retained for existing source notes.
     "fictional-work",
     "production-record",
     "critical-discourse",
@@ -40,6 +43,7 @@ EVIDENCE_DOMAINS = {
 }
 GROUNDING_STATUSES = {"grounded", "metadata-only", "manual"}
 CLAIM_TYPES = {
+    "depiction",
     "plot",
     "worldbuilding",
     "form",
@@ -57,6 +61,7 @@ CLAIM_TYPES = {
 }
 CLAIM_STATUSES = {"confirmed", "provisional", "attributed", "synthesis"}
 SOURCE_ID_RE = re.compile(r"\bS[0-9]{3,}\b")
+SCREEN_WORK_DOMAINS = {"screen-work", "fictional-work"}
 
 
 @dataclass(frozen=True)
@@ -243,13 +248,13 @@ def validate_claims(
             if discovery:
                 errors.append(f"{label}: discovery-only Sources cannot confirm claims: {', '.join(discovery)}")
 
-        if claim_type in {"plot", "worldbuilding", "form"} and status == "confirmed":
+        if claim_type in {"depiction", "plot", "worldbuilding", "form"} and status == "confirmed":
             if not any(
-                s.evidence_level == "work-primary" and s.evidence_domain == "fictional-work"
+                s.evidence_level == "work-primary" and s.evidence_domain in SCREEN_WORK_DOMAINS
                 for s in referenced
             ):
                 errors.append(
-                    f"{label}: confirmed {claim_type} claim requires a fictional-work/work-primary Source"
+                    f"{label}: confirmed {claim_type} claim requires a screen-work/work-primary Source"
                 )
         if claim_type == "production" and status == "confirmed":
             if not any(s.evidence_domain == "production-record" for s in referenced):
@@ -282,9 +287,16 @@ def validate_claims(
             errors.append(f"{label}: {claim_type} must be attributed or synthesis")
         if claim_type in {"contextual-comparison", "present-day-comparison"} and status == "synthesis":
             domains = {source.evidence_domain for source in referenced}
-            if not {"fictional-work", "real-world"}.issubset(domains):
+            has_screen_work = bool(domains & SCREEN_WORK_DOMAINS)
+            comparison_domains = (
+                {"real-world"}
+                if claim_type == "present-day-comparison"
+                else {"source-work", "production-record", "real-world"}
+            )
+            has_comparison_target = bool(domains & comparison_domains)
+            if not has_screen_work or not has_comparison_target:
                 errors.append(
-                    f"{label}: {claim_type} synthesis requires both fictional-work and real-world Sources"
+                    f"{label}: {claim_type} synthesis requires screen-work and a matching comparison-domain Source"
                 )
         if status == "provisional" and not referenced:
             warnings.append(f"{label}: source-free provisional claim should explain how it can be checked")

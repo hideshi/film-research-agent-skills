@@ -40,7 +40,8 @@ class InitTopicTests(unittest.TestCase):
             self.assertTrue((topic / "sources" / "notes").is_dir())
             self.assertTrue((topic / "briefings").is_dir())
             viewing_lens = (topic / "design" / "viewing-lens.md").read_text(encoding="utf-8")
-            self.assertIn("分析プロファイル: general", viewing_lens)
+            self.assertIn("主プロファイル: general", viewing_lens)
+            self.assertIn("補助タグ: なし", viewing_lens)
 
             second = run_script(
                 "init_topic.py",
@@ -62,6 +63,10 @@ class InitTopicTests(unittest.TestCase):
                 "historical-reality",
                 "horror-affect",
                 "social-political",
+                "adaptation-intermedia",
+                "documentary-evidence",
+                "form-style",
+                "industry-production",
             )
             for index, profile in enumerate(profiles):
                 with self.subTest(profile=profile):
@@ -81,7 +86,67 @@ class InitTopicTests(unittest.TestCase):
                     viewing_lens = (
                         root / "docs" / topic_id / "design" / "viewing-lens.md"
                     ).read_text(encoding="utf-8")
-                    self.assertIn(f"分析プロファイル: {profile}", viewing_lens)
+                    self.assertIn(f"主プロファイル: {profile}", viewing_lens)
+
+    def test_initializes_multiple_auxiliary_tags_without_duplicates(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            result = run_script(
+                "init_topic.py",
+                "--root",
+                str(root),
+                "--topic-id",
+                "tagged-film",
+                "--title",
+                "Tagged Film",
+                "--profile",
+                "sf-futures",
+                "--tag",
+                "ecology-environment",
+                "--tag",
+                "philosophy-ethics",
+                "--tag",
+                "ecology-environment",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            viewing_lens = (
+                root / "docs" / "tagged-film" / "design" / "viewing-lens.md"
+            ).read_text(encoding="utf-8")
+            self.assertIn(
+                "補助タグ: ecology-environment, philosophy-ethics",
+                viewing_lens,
+            )
+
+    def test_initializes_each_auxiliary_tag(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            tags = (
+                "ecology-environment",
+                "philosophy-ethics",
+                "religion-myth",
+                "queer-feminist",
+                "postcolonial",
+                "disability-representation",
+            )
+            for index, tag in enumerate(tags):
+                with self.subTest(tag=tag):
+                    topic_id = f"tag-{index}"
+                    result = run_script(
+                        "init_topic.py",
+                        "--root",
+                        str(root),
+                        "--topic-id",
+                        topic_id,
+                        "--title",
+                        "Tag Test Film",
+                        "--tag",
+                        tag,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    viewing_lens = (
+                        root / "docs" / topic_id / "design" / "viewing-lens.md"
+                    ).read_text(encoding="utf-8")
+                    self.assertIn(f"補助タグ: {tag}", viewing_lens)
 
 
 class SourceNoteTests(unittest.TestCase):
@@ -137,6 +202,31 @@ class SourceNoteTests(unittest.TestCase):
             self.assertEqual(duplicate.returncode, 1)
             self.assertIn("refusing to overwrite", duplicate.stderr)
 
+    def test_creates_adaptation_source_work_note(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            topic = Path(temp) / "docs" / "topic"
+            topic.mkdir(parents=True)
+            result = run_script(
+                "create_source_note.py",
+                "--topic",
+                str(topic),
+                "--source-id",
+                "S001",
+                "--title",
+                "Adapted source",
+                "--url",
+                "https://example.com/source-work",
+                "--source-kind",
+                "source-work",
+                "--evidence-level",
+                "work-primary",
+                "--evidence-domain",
+                "source-work",
+                "--grounding-status",
+                "metadata-only",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+
 
 class GroundingGateTests(unittest.TestCase):
     def make_topic(self, root: Path) -> Path:
@@ -151,7 +241,7 @@ class GroundingGateTests(unittest.TestCase):
         source_id: str,
         evidence_level: str,
         grounding_status: str = "grounded",
-        evidence_domain: str = "fictional-work",
+        evidence_domain: str = "screen-work",
     ) -> None:
         (topic / "sources" / "notes" / f"{source_id}.md").write_text(
             f"""---
@@ -190,7 +280,7 @@ grounding_status: "{grounding_status}"
 
 | Claim ID | Type | Claim | Sources | Status |
 |---|---|---|---|---|
-| C001 | plot | An observed plot event | S001 | confirmed |
+| C001 | depiction | An observed work event | S001 | confirmed |
 | C002 | interpretation | Critic reads the event as a warning | S002 | attributed |
 | C003 | inquiry | A question invited by the fictional system | S001, S002 | synthesis |
 """,
@@ -217,7 +307,7 @@ grounding_status: "{grounding_status}"
             )
             result = run_script("check_grounding.py", str(topic))
             self.assertEqual(result.returncode, 1)
-            self.assertIn("confirmed plot claim requires a fictional-work/work-primary Source", result.stdout)
+            self.assertIn("confirmed plot claim requires a screen-work/work-primary Source", result.stdout)
 
     def test_rejects_secondary_only_confirmed_form_claim(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -236,7 +326,7 @@ grounding_status: "{grounding_status}"
             )
             result = run_script("check_grounding.py", str(topic))
             self.assertEqual(result.returncode, 1)
-            self.assertIn("confirmed form claim requires a fictional-work/work-primary Source", result.stdout)
+            self.assertIn("confirmed form claim requires a screen-work/work-primary Source", result.stdout)
 
     def test_rejects_metadata_only_confirmation(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -257,10 +347,10 @@ grounding_status: "{grounding_status}"
             self.assertEqual(result.returncode, 1)
             self.assertIn("metadata-only Sources cannot confirm claims", result.stdout)
 
-    def test_rejects_fiction_as_real_world_fact(self) -> None:
+    def test_rejects_screen_work_as_real_world_fact(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             topic = self.make_topic(Path(temp))
-            self.write_note(topic, "S001", "work-primary", evidence_domain="fictional-work")
+            self.write_note(topic, "S001", "work-primary", evidence_domain="screen-work")
             (topic / "briefings" / "film.md").write_text(
                 """# Briefing
 
@@ -279,7 +369,7 @@ grounding_status: "{grounding_status}"
     def test_contextual_comparison_requires_both_domains(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             topic = self.make_topic(Path(temp))
-            self.write_note(topic, "S001", "work-primary", evidence_domain="fictional-work")
+            self.write_note(topic, "S001", "work-primary", evidence_domain="screen-work")
             (topic / "briefings" / "film.md").write_text(
                 """# Briefing
 
@@ -293,7 +383,44 @@ grounding_status: "{grounding_status}"
             )
             result = run_script("check_grounding.py", str(topic))
             self.assertEqual(result.returncode, 1)
-            self.assertIn("requires both fictional-work and real-world Sources", result.stdout)
+            self.assertIn("requires screen-work and a matching comparison-domain Source", result.stdout)
+
+    def test_adaptation_comparison_accepts_source_work(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            topic = self.make_topic(Path(temp))
+            self.write_note(topic, "S001", "work-primary", evidence_domain="screen-work")
+            self.write_note(topic, "S002", "work-primary", evidence_domain="source-work")
+            (topic / "briefings" / "film.md").write_text(
+                """# Briefing
+
+## Claim ledger
+
+| Claim ID | Type | Claim | Sources | Status |
+|---|---|---|---|---|
+| C001 | contextual-comparison | The film changes the source ending | S001, S002 | synthesis |
+""",
+                encoding="utf-8",
+            )
+            result = run_script("check_grounding.py", str(topic))
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_accepts_legacy_fictional_work_domain(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            topic = self.make_topic(Path(temp))
+            self.write_note(topic, "S001", "work-primary", evidence_domain="fictional-work")
+            (topic / "briefings" / "film.md").write_text(
+                """# Briefing
+
+## Claim ledger
+
+| Claim ID | Type | Claim | Sources | Status |
+|---|---|---|---|---|
+| C001 | plot | A plot event | S001 | confirmed |
+""",
+                encoding="utf-8",
+            )
+            result = run_script("check_grounding.py", str(topic))
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
 
 if __name__ == "__main__":

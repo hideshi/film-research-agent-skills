@@ -1,7 +1,7 @@
 interface:
   display_name: "映画理解ブリーフィング"
-  short_description: "映画資料を観点別の出典付きブリーフィングへ整理する"
-  default_prompt: "Use $film-research-briefing to create a sourced briefing for a film using the analysis profile that best fits my question."
+  short_description: "映画資料を主観点と補助タグ別の出典付き要約へ整理する"
+  default_prompt: "Use $film-research-briefing to create a sourced film briefing with one primary analysis profile and only the auxiliary tags my question needs."
 
 policy:
   allow_implicit_invocation: true

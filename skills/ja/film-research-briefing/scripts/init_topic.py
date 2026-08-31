@@ -16,6 +16,18 @@ PROFILES = {
     "historical-reality": "作品内の構成と歴史・実話の記録との関係",
     "horror-affect": "恐怖を生む映像・音響・物語・表象",
     "social-political": "制度・権力・社会集団・表象",
+    "adaptation-intermedia": "原資料からの翻案と媒体固有の表現",
+    "documentary-evidence": "証拠・編集・語りと現実についての外部確認",
+    "form-style": "映像・編集・音響・演技による形式とスタイル",
+    "industry-production": "資金・労働・技術・規制・配給などの制作条件",
+}
+TAGS = {
+    "ecology-environment": "環境・生態系・資源・非人間的主体",
+    "philosophy-ethics": "概念・価値・責任・倫理的ジレンマ",
+    "religion-myth": "信仰・儀礼・聖典・神話的モチーフ",
+    "queer-feminist": "ジェンダー・セクシュアリティ・身体・視線",
+    "postcolonial": "帝国・植民地主義・土地・言語・資源支配",
+    "disability-representation": "障害・病気・ケア・アクセスの表象",
 }
 
 
@@ -25,16 +37,33 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--topic-id", required=True, help="Lowercase kebab-case identifier")
     parser.add_argument("--title", required=True, help="Human-readable research topic")
     parser.add_argument("--profile", choices=PROFILES, default="general", help="Analysis profile")
+    parser.add_argument(
+        "--tag",
+        action="append",
+        choices=TAGS,
+        default=[],
+        help="Auxiliary analysis tag; repeat for multiple tags",
+    )
     return parser.parse_args()
 
 
-def initialize(root: Path, topic_id: str, title: str, profile: str = "general") -> Path:
+def initialize(
+    root: Path,
+    topic_id: str,
+    title: str,
+    profile: str = "general",
+    tags: tuple[str, ...] = (),
+) -> Path:
     if not TOPIC_ID_RE.fullmatch(topic_id):
         raise ValueError("topic-id must be lowercase kebab-case and at most 63 characters")
     if not title.strip():
         raise ValueError("title must not be empty")
     if profile not in PROFILES:
         raise ValueError(f"unknown profile: {profile}")
+    selected_tags = tuple(dict.fromkeys(tags))
+    unknown_tags = [tag for tag in selected_tags if tag not in TAGS]
+    if unknown_tags:
+        raise ValueError(f"unknown tags: {', '.join(unknown_tags)}")
 
     topic_dir = root.resolve() / "docs" / topic_id
     if topic_dir.exists():
@@ -47,6 +76,9 @@ def initialize(root: Path, topic_id: str, title: str, profile: str = "general") 
     notes_dir.mkdir(parents=True)
     briefings_dir.mkdir(parents=True)
 
+    tag_names = ", ".join(selected_tags) if selected_tags else "なし"
+    tag_focus = " / ".join(TAGS[tag] for tag in selected_tags) if selected_tags else "なし"
+
     viewing_lens = f"""# 視聴・理解のレンズ — {title.strip()}
 
 ## 対象
@@ -55,8 +87,10 @@ def initialize(root: Path, topic_id: str, title: str, profile: str = "general") 
 - ネタバレ方針: 全編可
 - 読了時間の目安: 5分
 - 本編確認状況: 未記録
-- 分析プロファイル: {profile}
-- プロファイルの観点: {PROFILES[profile]}
+- 主プロファイル: {profile}
+- 主プロファイルの観点: {PROFILES[profile]}
+- 補助タグ: {tag_names}
+- 補助タグの観点: {tag_focus}
 
 ## 知りたいこと
 
@@ -88,11 +122,12 @@ def initialize(root: Path, topic_id: str, title: str, profile: str = "general") 
 def main() -> int:
     args = parse_args()
     try:
-        topic_dir = initialize(args.root, args.topic_id, args.title, args.profile)
+        topic_dir = initialize(args.root, args.topic_id, args.title, args.profile, tuple(args.tag))
     except (ValueError, FileExistsError, OSError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
-    print(f"Created film briefing topic ({args.profile}): {topic_dir}")
+    tags = ",".join(dict.fromkeys(args.tag)) or "none"
+    print(f"Created film briefing topic (profile={args.profile}; tags={tags}): {topic_dir}")
     return 0
 
 
