@@ -39,6 +39,8 @@ class InitTopicTests(unittest.TestCase):
             self.assertTrue((topic / "sources" / "source-matrix.md").is_file())
             self.assertTrue((topic / "sources" / "notes").is_dir())
             self.assertTrue((topic / "briefings").is_dir())
+            viewing_lens = (topic / "design" / "viewing-lens.md").read_text(encoding="utf-8")
+            self.assertIn("分析プロファイル: general", viewing_lens)
 
             second = run_script(
                 "init_topic.py",
@@ -51,6 +53,35 @@ class InitTopicTests(unittest.TestCase):
             )
             self.assertEqual(second.returncode, 1)
             self.assertIn("refusing to overwrite", second.stderr)
+
+    def test_initializes_each_specialized_profile(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            profiles = (
+                "sf-futures",
+                "historical-reality",
+                "horror-affect",
+                "social-political",
+            )
+            for index, profile in enumerate(profiles):
+                with self.subTest(profile=profile):
+                    topic_id = f"profile-{index}"
+                    result = run_script(
+                        "init_topic.py",
+                        "--root",
+                        str(root),
+                        "--topic-id",
+                        topic_id,
+                        "--title",
+                        "Profile Test Film",
+                        "--profile",
+                        profile,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    viewing_lens = (
+                        root / "docs" / topic_id / "design" / "viewing-lens.md"
+                    ).read_text(encoding="utf-8")
+                    self.assertIn(f"分析プロファイル: {profile}", viewing_lens)
 
 
 class SourceNoteTests(unittest.TestCase):
@@ -161,7 +192,7 @@ grounding_status: "{grounding_status}"
 |---|---|---|---|---|
 | C001 | plot | An observed plot event | S001 | confirmed |
 | C002 | interpretation | Critic reads the event as a warning | S002 | attributed |
-| C003 | future-question | A question invited by the fictional system | S001, S002 | synthesis |
+| C003 | inquiry | A question invited by the fictional system | S001, S002 | synthesis |
 """,
                 encoding="utf-8",
             )
@@ -187,6 +218,25 @@ grounding_status: "{grounding_status}"
             result = run_script("check_grounding.py", str(topic))
             self.assertEqual(result.returncode, 1)
             self.assertIn("confirmed plot claim requires a fictional-work/work-primary Source", result.stdout)
+
+    def test_rejects_secondary_only_confirmed_form_claim(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            topic = self.make_topic(Path(temp))
+            self.write_note(topic, "S001", "critical-secondary")
+            (topic / "briefings" / "film.md").write_text(
+                """# Briefing
+
+## Claim ledger
+
+| Claim ID | Type | Claim | Sources | Status |
+|---|---|---|---|---|
+| C001 | form | The scene uses a long take | S001 | confirmed |
+""",
+                encoding="utf-8",
+            )
+            result = run_script("check_grounding.py", str(topic))
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("confirmed form claim requires a fictional-work/work-primary Source", result.stdout)
 
     def test_rejects_metadata_only_confirmation(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -226,7 +276,7 @@ grounding_status: "{grounding_status}"
             self.assertEqual(result.returncode, 1)
             self.assertIn("real-world-fact requires only real-world Sources", result.stdout)
 
-    def test_present_day_comparison_requires_both_domains(self) -> None:
+    def test_contextual_comparison_requires_both_domains(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             topic = self.make_topic(Path(temp))
             self.write_note(topic, "S001", "work-primary", evidence_domain="fictional-work")
@@ -237,7 +287,7 @@ grounding_status: "{grounding_status}"
 
 | Claim ID | Type | Claim | Sources | Status |
 |---|---|---|---|---|
-| C001 | present-day-comparison | The fictional system resembles current technology | S001 | synthesis |
+| C001 | contextual-comparison | The fictional system resembles current technology | S001 | synthesis |
 """,
                 encoding="utf-8",
             )

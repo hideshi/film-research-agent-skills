@@ -1,7 +1,7 @@
 interface:
-  display_name: "SF映画理解ブリーフィング"
-  short_description: "SF映画解説を未来への想像が広がる出典付き要約へ整理する"
-  default_prompt: "Use $film-research-briefing to deepen my understanding of an SF film and the futures it invites me to imagine."
+  display_name: "映画理解ブリーフィング"
+  short_description: "映画資料を観点別の出典付きブリーフィングへ整理する"
+  default_prompt: "Use $film-research-briefing to create a sourced briefing for a film using the analysis profile that best fits my question."
 
 policy:
   allow_implicit_invocation: true

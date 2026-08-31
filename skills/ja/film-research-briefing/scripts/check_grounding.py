@@ -42,11 +42,16 @@ GROUNDING_STATUSES = {"grounded", "metadata-only", "manual"}
 CLAIM_TYPES = {
     "plot",
     "worldbuilding",
+    "form",
     "production",
     "creator-intent",
     "reception",
     "interpretation",
+    "representation",
     "real-world-fact",
+    "contextual-comparison",
+    "inquiry",
+    # Legacy types retained for existing briefings.
     "present-day-comparison",
     "future-question",
 }
@@ -238,7 +243,7 @@ def validate_claims(
             if discovery:
                 errors.append(f"{label}: discovery-only Sources cannot confirm claims: {', '.join(discovery)}")
 
-        if claim_type in {"plot", "worldbuilding"} and status == "confirmed":
+        if claim_type in {"plot", "worldbuilding", "form"} and status == "confirmed":
             if not any(
                 s.evidence_level == "work-primary" and s.evidence_domain == "fictional-work"
                 for s in referenced
@@ -260,18 +265,26 @@ def validate_claims(
         if claim_type == "real-world-fact" and status == "confirmed":
             if not referenced or any(s.evidence_domain != "real-world" for s in referenced):
                 errors.append(f"{label}: confirmed real-world-fact requires only real-world Sources")
-        if claim_type == "interpretation" and status not in {"attributed", "synthesis"}:
-            errors.append(f"{label}: interpretation must be attributed or synthesis")
-        if claim_type in {"present-day-comparison", "future-question"} and status not in {
+        if claim_type in {"interpretation", "representation"} and status not in {
             "attributed",
             "synthesis",
         }:
             errors.append(f"{label}: {claim_type} must be attributed or synthesis")
-        if claim_type == "present-day-comparison" and status == "synthesis":
+        if claim_type in {
+            "contextual-comparison",
+            "inquiry",
+            "present-day-comparison",
+            "future-question",
+        } and status not in {
+            "attributed",
+            "synthesis",
+        }:
+            errors.append(f"{label}: {claim_type} must be attributed or synthesis")
+        if claim_type in {"contextual-comparison", "present-day-comparison"} and status == "synthesis":
             domains = {source.evidence_domain for source in referenced}
             if not {"fictional-work", "real-world"}.issubset(domains):
                 errors.append(
-                    f"{label}: present-day-comparison synthesis requires both fictional-work and real-world Sources"
+                    f"{label}: {claim_type} synthesis requires both fictional-work and real-world Sources"
                 )
         if status == "provisional" and not referenced:
             warnings.append(f"{label}: source-free provisional claim should explain how it can be checked")

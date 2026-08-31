@@ -68,9 +68,10 @@ grounding_status: grounded
 |---|---|---|---|---|
 | C001 | plot | 主張 | S001 | confirmed |
 | C002 | interpretation | 論者Aは〜と読む | S002 | attributed |
-| C003 | future-question | 作中設定から生まれる未来への問い | S001, S003 | synthesis |
+| C003 | contextual-comparison | 作品と現実の比較 | S001, S003 | synthesis |
+| C004 | inquiry | 作品から生まれる未決の問い | S001 | synthesis |
 ```
 
-Type は `plot`、`worldbuilding`、`production`、`creator-intent`、`reception`、`interpretation`、`real-world-fact`、`present-day-comparison`、`future-question`。Status は `confirmed`、`provisional`、`attributed`、`synthesis`。
+Type は `plot`、`worldbuilding`、`form`、`production`、`creator-intent`、`reception`、`interpretation`、`representation`、`real-world-fact`、`contextual-comparison`、`inquiry`。既存成果物の `present-day-comparison` と `future-question` も検査スクリプトは受理する。Status は `confirmed`、`provisional`、`attributed`、`synthesis`。
 
 Source ledger には各 ID、資料名、URL、evidence level、grounding status を一覧化する。ローカルノートへのリンクも付ける。

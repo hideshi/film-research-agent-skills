@@ -10,6 +10,13 @@ from pathlib import Path
 
 
 TOPIC_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}$")
+PROFILES = {
+    "general": "プロット、形式、制作、受容、主要解釈",
+    "sf-futures": "技術・社会システム・未来像と現実との比較",
+    "historical-reality": "作品内の構成と歴史・実話の記録との関係",
+    "horror-affect": "恐怖を生む映像・音響・物語・表象",
+    "social-political": "制度・権力・社会集団・表象",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -17,14 +24,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--root", type=Path, required=True, help="Research repository root")
     parser.add_argument("--topic-id", required=True, help="Lowercase kebab-case identifier")
     parser.add_argument("--title", required=True, help="Human-readable research topic")
+    parser.add_argument("--profile", choices=PROFILES, default="general", help="Analysis profile")
     return parser.parse_args()
 
 
-def initialize(root: Path, topic_id: str, title: str) -> Path:
+def initialize(root: Path, topic_id: str, title: str, profile: str = "general") -> Path:
     if not TOPIC_ID_RE.fullmatch(topic_id):
         raise ValueError("topic-id must be lowercase kebab-case and at most 63 characters")
     if not title.strip():
         raise ValueError("title must not be empty")
+    if profile not in PROFILES:
+        raise ValueError(f"unknown profile: {profile}")
 
     topic_dir = root.resolve() / "docs" / topic_id
     if topic_dir.exists():
@@ -45,11 +55,13 @@ def initialize(root: Path, topic_id: str, title: str) -> Path:
 - ネタバレ方針: 全編可
 - 読了時間の目安: 5分
 - 本編確認状況: 未記録
+- 分析プロファイル: {profile}
+- プロファイルの観点: {PROFILES[profile]}
 
 ## 知りたいこと
 
 - この作品について何を最も理解したいか:
-- 世界設定や未来像のどこに関心があるか:
+- 作品のどの側面に関心があるか:
 - すでに知っていること、誤解かもしれないこと:
 
 ## 境界
@@ -76,11 +88,11 @@ def initialize(root: Path, topic_id: str, title: str) -> Path:
 def main() -> int:
     args = parse_args()
     try:
-        topic_dir = initialize(args.root, args.topic_id, args.title)
+        topic_dir = initialize(args.root, args.topic_id, args.title, args.profile)
     except (ValueError, FileExistsError, OSError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
-    print(f"Created SF-film briefing topic: {topic_dir}")
+    print(f"Created film briefing topic ({args.profile}): {topic_dir}")
     return 0
 
 

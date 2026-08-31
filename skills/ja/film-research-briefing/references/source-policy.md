@@ -20,37 +20,41 @@ YouTube やブログは媒体名だけで階層を決めない。作成者、根
 |---|---|
 | `plot` | `work-primary` 1件。入手不能なら、独立した grounded 二次資料2件で `provisional` に留める |
 | `worldbuilding` | `work-primary` 1件。脚本と完成作品が異なる場合は、どの版の設定かを明記する |
+| `form` | 作品本編で観察できる映像・編集・音響・演技。効果や意味の推定は `interpretation` に分ける |
 | `production` | `production-primary` または `scholarly-secondary` 1件。伝聞なら `provisional` |
 | `creator-intent` | 発言者を特定できる `production-primary` 1件。批評家による意図推定は `interpretation` |
 | `reception` | 対象と範囲に合う `scholarly-secondary`、同時代資料、または複数の署名付き批評 |
 | `interpretation` | 根拠資料を示し、論者へ帰属して `attributed`。調査者自身なら `synthesis` |
+| `representation` | 対象場面または批評へ追跡し、論者へ帰属した `attributed` または調査者の `synthesis` |
 | `real-world-fact` | `real-world` ドメインの資料。`fictional-work` は使用不可 |
-| `present-day-comparison` | 作品側資料と現在についての信頼できる資料を分けて `synthesis`。比較時点を明記する |
-| `future-question` | 原則 `synthesis`。問いの起点となる作中設定を示し、予測や作品の主張へ変換しない |
+| `contextual-comparison` | 作品側資料と現実側資料を分けた `synthesis`。比較対象と時点を明記する |
+| `inquiry` | 原則 `synthesis`。問いの起点となる作品上の根拠を示し、作品や論者の主張へ変換しない |
+
+`present-day-comparison` と `future-question` は既存成果物との互換性のため受理する。新規成果物では、それぞれ `contextual-comparison` と `inquiry` を使う。
 
 ## 3. 独立性
 
 複数資料が同じ第三資料を写している場合は一件と数える。動画が Wikipedia を読み上げ、ブログがその動画を要約しているような依存関係を記録する。独立性を確認できない場合は `provisional` とする。
 
-## 4. 技術概念との比較と未来への想像
+## 4. 作品と現実の比較
 
-作品内の架空技術を現代の技術概念と比較するときは、次を分ける。
+作品と現実の技術、歴史、制度、社会状況を比較するときは、次を分ける。
 
-1. 作品内で明示される能力・制約
-2. 解説者が読み込んだ能力・意図
-3. 比較に使う現代の概念の意味
+1. 作品内で確認できる描写
+2. 解説者が読み込んだ意味や意図
+3. 比較する現実側の対象、概念、時点
 4. 両者が対応する特徴
-5. 対応しない特徴、描写不足、時代差
+5. 対応しない特徴、描写不足、記録上の不確実性
 
-`X is AGI` のような同一視より、`現在 AGI と呼ばれるものの特徴 a/b には対応するが c は描写されない` のように違いが見える書き方をする。ここから生まれる未来への問いは自由に広げてよいが、作品が明示した命題や現実の予測として帰属させない。
+比較は同一視や単純な正誤判定ではなく、類似と非類似が見えるように書く。具体的な観点と追加資料は、選択した分析プロファイルに従う。
 
 ## 5. 証拠ドメイン境界
 
-- `fictional-work` は `plot` と `worldbuilding` を支える。現実世界の事実、制作史、制作者意図を支えない。
+- `fictional-work` は `plot`、`worldbuilding`、直接観察できる `form` を支える。現実世界の事実、制作史、制作者意図を支えない。
 - `production-record` は `production` と `creator-intent` を支える。作品内で実際に描かれた内容の代用にはしない。
-- `critical-discourse` は帰属付き `interpretation` と受容を支える。解釈を作品内事実へ昇格させない。
+- `critical-discourse` は帰属付き `interpretation`、`representation`、受容を支える。解釈を作品内事実へ昇格させない。
 - `real-world` は現実の技術・歴史・社会に関する主張を支える。作品との類似は別途 `synthesis` とする。
-- `present-day-comparison` には、少なくとも `fictional-work` と `real-world` の双方を付ける。
+- `contextual-comparison` には、少なくとも `fictional-work` と `real-world` の双方を付ける。
 - ページが複数の役割を持つ場合、同じ URL でも用途別に出典ノートを分ける。
 
 ## 6. 不一致の処理
